@@ -3,7 +3,12 @@
    Vanilla JS. Data lives in data.json, synced to GitHub via PAT.
    ============================================================ */
 
-const CFG_KEY = 'wcs_config';
+// localStorage is shared across a whole origin, so two sweeps hosted under the
+// same GitHub Pages account (username.github.io/a, username.github.io/b) would
+// otherwise clobber each other's config. Namespace every key by the repo path
+// segment so each hosted copy is isolated automatically — no editing needed.
+const APP_NS  = (location.pathname.split('/')[1] || 'root');
+const CFG_KEY = 'wcs_config:' + APP_NS;
 const HOUSE = 'House';   // leftover teams (the pot) go here
 const DREGS = 'Dregs';       // optional unowned bucket (out of the sweep)
 
@@ -966,7 +971,7 @@ function mcStep(n) {
 // ============================================================
 //  View routing
 // ============================================================
-const VIEW_KEY = 'wcs_view';
+const VIEW_KEY = 'wcs_view:' + APP_NS;
 function switchView(name) {
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
   $$('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.view === name));
