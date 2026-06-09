@@ -39,14 +39,23 @@ let skipDraw = false;
 // ============================================================
 //  Config (GitHub sync)
 // ============================================================
-// This site's own repo. Set `owner` to the GitHub account hosting this copy so
-// viewers load live data automatically; the admin then only pastes a token.
+// Fallback repo (used only when auto-detection can't run, e.g. local dev).
 const DEFAULT_REPO = { owner: 'f1atty', repo: 'world-cup-26-sweep-app', branch: 'main', path: 'data.json' };
+// On GitHub Pages a project site is served at <owner>.github.io/<repo>/, so we
+// can read the repo straight off the URL. This means any copy of the template
+// works out of the box — no code editing — once Pages is on. The admin only
+// pastes a token; everyone else just views.
+function detectRepo() {
+  const host = location.hostname, seg = location.pathname.split('/')[1] || '';
+  if (host.endsWith('.github.io') && seg) return { owner: host.split('.')[0], repo: seg };
+  return null;
+}
 function loadCfg() {
   try { CFG = JSON.parse(localStorage.getItem(CFG_KEY)) || {}; }
   catch { CFG = {}; }
-  CFG.owner  = CFG.owner  || DEFAULT_REPO.owner;
-  CFG.repo   = CFG.repo   || DEFAULT_REPO.repo;
+  const det = detectRepo();
+  CFG.owner  = CFG.owner  || (det && det.owner) || DEFAULT_REPO.owner;
+  CFG.repo   = CFG.repo   || (det && det.repo)  || DEFAULT_REPO.repo;
   CFG.branch = CFG.branch || DEFAULT_REPO.branch;
   CFG.path   = CFG.path   || DEFAULT_REPO.path;
   CFG.token  = CFG.token  || '';
