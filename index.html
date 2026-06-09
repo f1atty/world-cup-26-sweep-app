@@ -38,6 +38,7 @@
       <button data-view="standings">Standings</button>
       <button data-view="teams">Teams</button>
       <button data-view="settings">Settings</button>
+      <button data-view="help">How to use</button>
     </nav>
 
     <!-- ============ DRAW ============ -->
@@ -247,6 +248,75 @@
           <button class="btn btn-ghost" id="resetDraw">Reset the draw</button>
           <button class="btn btn-ghost" id="resetAll" style="color:var(--magenta); border-color:var(--magenta);">Wipe everything</button>
         </div>
+      </div>
+    </section>
+
+    <!-- ============ HOW TO USE ============ -->
+    <section class="view" id="view-help">
+      <div class="panel guide">
+        <h2>What this is</h2>
+        <p class="hint">A World Cup sweep. Everyone playing is randomly dealt a share of the 48 teams. As teams get knocked out, players drop away, and whoever owns the eventual champion wins. Last team standing.</p>
+        <p class="hint">You run it for free on your own GitHub page. One person is the <b>admin</b> (runs the draw, can fix scores). Everyone else just opens the link and watches it update live.</p>
+      </div>
+
+      <div class="panel guide">
+        <h2>Set it up · one time, about 10 minutes</h2>
+        <ol class="guide-steps">
+          <li>
+            <b>Make your own copy.</b>
+            On the template repo page on GitHub, click the green <b>Use this template</b> button → <b>Create a new repository</b>. Give it a name (anything, e.g. <code>office-world-cup</code>), set it to <b>Public</b>, and create it.
+          </li>
+          <li>
+            <b>Turn on the website.</b>
+            In your new repo: <b>Settings → Pages</b>. Under "Source" pick <b>Deploy from a branch</b>, choose branch <b>main</b> and folder <b>/ (root)</b>, then <b>Save</b>. After a minute your site is live at <code>your-username.github.io/your-repo-name</code>.
+          </li>
+          <li>
+            <b>Become the admin.</b>
+            You need a token so the app can save your draw and results for everyone.
+            <ul>
+              <li>On GitHub: your avatar (top right) → <b>Settings → Developer settings</b> (bottom of the left menu) → <b>Personal access tokens → Fine-grained tokens → Generate new token</b>.</li>
+              <li><b>Repository access:</b> "Only select repositories" → pick your sweep repo.</li>
+              <li><b>Permissions:</b> Repository permissions → <b>Contents → Read and write</b>.</li>
+              <li>Generate it and <b>copy</b> the token.</li>
+              <li>Open your site → <b>Settings</b> tab → paste it into "Personal access token" → <b>Save config</b>. The badge near the top should read <b>Admin · synced</b>.</li>
+            </ul>
+            <span class="help">The token lives only in your browser and is never shared. Keep it private, like a password.</span>
+          </li>
+          <li>
+            <b>Name your sweep.</b>
+            <b>Settings → Group Branding</b>: set the group name, a tagline, and what to call the people in it (player, lad, member, whatever). Save branding.
+          </li>
+        </ol>
+      </div>
+
+      <div class="panel guide">
+        <h2>Run the draw</h2>
+        <ol class="guide-steps">
+          <li>Go to <b>The Draw</b> tab and add everyone's name.</li>
+          <li><b>Draw the order</b> — shuffles who gets picked when.</li>
+          <li><b>Draw the teams</b> — deals the 48 teams out. Pick a draw style (<b>Pots by ranking</b> is the fairest spread). Any teams left over go to <b>House</b> (the pot).</li>
+          <li>Happy with it? Hit <b>Lock the draw</b> so it can't be changed by accident.</li>
+        </ol>
+      </div>
+
+      <div class="panel guide">
+        <h2>During the tournament</h2>
+        <p class="hint">Results update on their own, roughly every 20 minutes while games are on. Match Centre, Groups, Knockout and Standings all fill in automatically. Nothing for you to do.</p>
+        <p class="hint">If a score is ever wrong or slow, the admin can set it by hand on the <b>Teams</b> tab (mark a team out, revive it, or crown the champion). The auto-update will reconcile on its next run.</p>
+      </div>
+
+      <div class="panel guide">
+        <h2>Share it</h2>
+        <p class="hint">Send everyone your site link (<code>your-username.github.io/your-repo-name</code>). They see the whole thing live, read-only. Only you, with the token saved in your browser, can change anything.</p>
+      </div>
+
+      <div class="panel guide">
+        <h2>If something's not right</h2>
+        <ul>
+          <li><b>No "Admin" badge / it won't save:</b> your token is missing, or doesn't have <b>Contents: Read &amp; write</b>, or is pointed at the wrong repo. Redo step 3.</li>
+          <li><b>Results aren't updating:</b> check the <b>Actions</b> tab on your repo is enabled. Auto-updates only run during the tournament dates; to force one, go to Actions → "Update results" → <b>Run workflow</b>.</li>
+          <li><b>Wrong or old data showing:</b> hard refresh the page (Cmd+Shift+R on Mac, Ctrl+Shift+R on Windows).</li>
+        </ul>
       </div>
     </section>
   </div>
