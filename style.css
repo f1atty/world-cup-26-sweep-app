@@ -369,9 +369,10 @@ label.fld { display:block; font-size:12px; font-weight:800; letter-spacing:0.1em
 }
 .standings-tbl td { text-align:center; padding:7px 3px; border-bottom:1px solid rgba(255,255,255,0.04); }
 .standings-tbl td.pos { color: var(--dim); font-family:var(--display); font-size:14px; width:18px; }
-.standings-tbl td.tm { text-align:left; white-space:nowrap; }
+.standings-tbl td.tm { text-align:left; }
 .standings-tbl td.tm .fl { font-size:18px; margin-right:7px; vertical-align:middle; }
-.standings-tbl td.tm .nm { vertical-align:middle; }
+.standings-tbl td.tm .nm { vertical-align:middle; overflow-wrap:anywhere; }
+.group-card { overflow:hidden; }
 .standings-tbl td.pts { font-weight:800; color: var(--text); }
 .standings-tbl tr.qual td.pos { color: var(--lime); }
 .standings-tbl tr.qual td:first-child { box-shadow: inset 3px 0 0 var(--lime); }
@@ -390,7 +391,8 @@ label.fld { display:block; font-size:12px; font-weight:800; letter-spacing:0.1em
   font-size:12px; padding:7px 2px; border-top:1px solid rgba(255,255,255,0.04);
 }
 .fx .fx-when { color: var(--cyan); font-weight:700; font-size:11px; margin-bottom:4px; opacity:0.85; }
-.fx .fx-row { display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; gap:8px; }
+.fx .fx-row { display:grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:8px; }
+.fx .fa, .fx .fb { min-width:0; overflow-wrap:anywhere; }
 .fx .fa { text-align:right; } .fx .fb { text-align:left; }
 .fx .fa .fl, .fx .fb .fl { font-size:15px; }
 .fx .fm { font-weight:800; color: var(--text); min-width:32px; text-align:center; }
