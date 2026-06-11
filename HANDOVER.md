@@ -14,8 +14,10 @@ change) may need applying to the other**.
 ## Stack
 
 - Vanilla HTML/CSS/JS, no build step. `index.html` + `style.css` + `app.js`.
-- State lives in `data.json`, synced to GitHub via a Personal Access Token (admin only).
-- Hosted on GitHub Pages; results auto-update via a GitHub Action.
+- The **draw** lives in `data.json`, saved to GitHub via a Personal Access Token (admin only).
+- **Match results are fetched live from openfootball in the browser** and derived client-side —
+  no results cache, no GitHub Action. The token is needed only to author/save the draw.
+- Hosted on GitHub Pages.
 
 ## Files
 
@@ -23,10 +25,9 @@ change) may need applying to the other**.
 |------|---------|
 | `index.html` | App shell and all views (Draw, Match Centre, Groups, Knockout, Standings, Teams, Settings, How to use) |
 | `style.css` | Stadium-broadcast theme + guide styling |
-| `app.js` | Draw, scoring, groups, bracket, Match Centre, GitHub sync, branding |
-| `data.json` | Source of truth: teams (48), schedule (104), players, draw, results. Ships as a clean slate. |
-| `scripts/update_results.py` | Pulls results from openfootball, fills the schedule, derives alive/out + champion |
-| `.github/workflows/update-results.yml` | Runs the updater every ~20 min during the tournament + on demand |
+| `app.js` | Draw, scoring, groups, bracket, Match Centre, branding, GitHub draw-sync, and the live-results engine (`refreshResults`/`buildSchedule`/`deriveStatus`) |
+| `data.json` | Teams (48), fixture skeleton, players + draw, branding. Ships as a clean slate. **No live scores** — fetched at runtime |
+| `scripts/update_results.py` | **No longer run** (Action removed). Kept as the reference the JS engine was ported from, and for local checks |
 | `Set-Up-Your-World-Cup-Sweep.docx` | Plain-English setup guide to send to a non-technical user |
 
 ## What differs from the original (the genericisation)
@@ -70,21 +71,22 @@ In short:
    repository) to create a new repo under the user's own account.
 2. Enable **Pages** (Settings → Pages → branch `main`, `/root`). Site lives at
    `<username>.github.io/<repo>`.
-3. Enable **Actions** if needed (auto-enabled on template copies; forks need it switched on).
-4. On the site → **Settings**, paste a fine-grained PAT with **Contents: Read & write** on
-   that repo. Badge reads "Admin · synced".
-5. **Settings → Group Branding** to name it, then run the draw on **The Draw** tab.
+3. On the site → **Settings**, paste a fine-grained PAT with **Contents: Read & write** on that
+   repo (needed to **save the draw**, not for results). Badge reads "Admin · synced".
+4. **Settings → Group Branding** to name it, then run the draw on **The Draw** tab and lock it —
+   that commits the draw to `data.json`.
 
-No token = read-only view of the latest committed data.
+No Action is needed: results are fetched live from openfootball by every viewer. A copier without
+a token gets a read-only view and can't save a draw.
 
-## Auto-updating results
+## Live results (fetched client-side)
 
-The GitHub Action runs `scripts/update_results.py` every ~20 min during the tournament
-window (and on demand from the Actions tab). It pulls the public
-[openfootball/worldcup.json](https://github.com/openfootball/worldcup.json) feed (no API key),
-fills scores, resolves the bracket, derives alive/out + champion, and commits `data.json`
-only if something changed. Semi-live: latency = openfootball lag + the 20-min cron.
-Manual fallback: set results by hand on the **Teams** tab.
+There is **no results cache and no GitHub Action**. On load and every 90s the browser fetches the
+public [openfootball/worldcup.json](https://github.com/openfootball/worldcup.json) feed (no API
+key, CORS-open) and `refreshResults()` rebuilds the schedule with scores, resolves the bracket,
+and derives alive/out + champion — the logic `scripts/update_results.py` used to run, ported to
+JS. Results are a live read, never written back. Last-good results are cached in `localStorage`
+(`wcs_results:<repo>`) for transient outages. The admin token is only for saving the **draw**.
 
 ## Notes / gotchas
 
