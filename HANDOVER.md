@@ -49,6 +49,18 @@ change) may need applying to the other**.
 - **Clean-slate `data.json`** — no players, no draw, all teams alive, scores cleared.
 - **"How to use" tab** (`#view-help`) — in-app setup guide.
 
+## Recent additions
+
+- **Hide-the-Settings-tab toggle.** A shared flag `DATA.meta.hideSettingsTab` (stored in
+  `data.json`, so it applies to every viewer) lets the admin hide the Settings tab from the
+  wider group. Logic: `settingsHidden()`, `settingsTabVisible()` (visible if not hidden, or the
+  viewer is an admin with a token, or the URL hash opens it), `adminHashOpen()`, and the toggle
+  button `#toggleSettingsTab` (handler updates the flag and pushes). The admin can always get
+  back in via `#settings` (or `#admin`) on the URL, and the tab stays visible on their own
+  token-holding browser. Button label/note kept in sync by `updateSettingsTab()`.
+- **Groups card text contained.** CSS fix so long team names and standings/fixtures text stay
+  inside the group card instead of overflowing.
+
 ## Setting up a new sweep (for a new group)
 
 Full steps are in the in-app **How to use** tab and in `Set-Up-Your-World-Cup-Sweep.docx`.
