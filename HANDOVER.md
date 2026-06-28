@@ -15,8 +15,8 @@ change) may need applying to the other**.
 
 - Vanilla HTML/CSS/JS, no build step. `index.html` + `style.css` + `app.js`.
 - The **draw** lives in `data.json`, saved to GitHub via a Personal Access Token (admin only).
-- **Match results are fetched live from openfootball in the browser** and derived client-side —
-  no results cache, no GitHub Action. The token is needed only to author/save the draw.
+- **Match results are fetched live from ESPN in the browser** and derived client-side (no results
+  cache, no GitHub Action). The token is needed only to author/save the draw.
 - Hosted on GitHub Pages.
 
 ## Files
@@ -26,8 +26,8 @@ change) may need applying to the other**.
 | `index.html` | App shell and all views (Draw, Match Centre, Groups, Knockout, Standings, Teams, Settings, How to use) |
 | `style.css` | Stadium-broadcast theme + guide styling |
 | `app.js` | Draw, scoring, groups, bracket, Match Centre, branding, GitHub draw-sync, and the live-results engine (`refreshResults`/`buildSchedule`/`deriveStatus`) |
-| `data.json` | Teams (48), fixture skeleton, players + draw, branding. Ships as a clean slate. **No live scores** — fetched at runtime |
-| `scripts/update_results.py` | **No longer run** (Action removed). Kept as the reference the JS engine was ported from, and for local checks |
+| `data.json` | Teams (48), group letters, players + draw, branding. Ships as a clean slate. **No live scores** (fetched at runtime). Group letters are also used to label ESPN events |
+| `scripts/update_results.py` | **No longer run or used** (it was openfootball-based, and openfootball was dropped on 2026-06-28). Kept only as historical reference |
 | `Set-Up-Your-World-Cup-Sweep.docx` | Plain-English setup guide to send to a non-technical user |
 
 ## What differs from the original (the genericisation)
@@ -76,17 +76,30 @@ In short:
 4. **Settings → Group Branding** to name it, then run the draw on **The Draw** tab and lock it —
    that commits the draw to `data.json`.
 
-No Action is needed: results are fetched live from openfootball by every viewer. A copier without
+No Action is needed: results are fetched live from ESPN by every viewer. A copier without
 a token gets a read-only view and can't save a draw.
 
 ## Live results (fetched client-side)
 
-There is **no results cache and no GitHub Action**. On load and every 90s the browser fetches the
-public [openfootball/worldcup.json](https://github.com/openfootball/worldcup.json) feed (no API
-key, CORS-open) and `refreshResults()` rebuilds the schedule with scores, resolves the bracket,
-and derives alive/out + champion — the logic `scripts/update_results.py` used to run, ported to
-JS. Results are a live read, never written back. Last-good results are cached in `localStorage`
+There is **no results cache and no GitHub Action**. ESPN's public scoreboard is the **single data
+source**. On load and every 90s the browser does **one fetch** of the ESPN scoreboard (no API key,
+CORS-open) and `buildSchedule(espn)` builds the whole schedule from it: events are numbered 1..104
+by ascending `event.id` (a self-consistent order), each match's stage is read from `season.slug`,
+the group letter comes from `data.json`, and the teams/score/status come from the competitors.
+Knockout slot labels like "Round of 32 3 Winner" are turned into the existing `W<num>`/`L<num>`
+bracket refs. `refreshResults()` then resolves the bracket and derives alive/out + champion.
+Results are a live read, never written back. Last-good results are cached in `localStorage`
 (`wcs_results:<repo>`) for transient outages. The admin token is only for saving the **draw**.
+
+**Why openfootball was dropped (2026-06-28).** Previously the engine took fixture/bracket
+**structure** from [openfootball/worldcup.json](https://github.com/openfootball/worldcup.json) and
+overlaid live **scores** from ESPN. openfootball's knockout bracket wiring lagged the group results
+by hours (after the group stage it left Round-of-32 slots as placeholders like "1I" or
+"3A/B/C/D/F"), which made the qualification logic wrongly mark **qualified** teams as **OUT**. ESPN
+resolves the knockout teams immediately, so it is now the only source. The openfootball fetch and
+the score-overlay helpers (`espnScoreIndex`/`overlayEspnScores`/`kickoffUtc`/`ofScores`) were
+removed. Note: ESPN orders knockout matches differently from openfootball, so the bracket numbering
+is now ESPN's own, not openfootball's.
 
 ## Notes / gotchas
 
