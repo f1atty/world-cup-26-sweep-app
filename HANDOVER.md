@@ -87,7 +87,7 @@ CORS-open) and `buildSchedule(espn)` builds the whole schedule from it: events a
 by ascending `event.id` (a self-consistent order), each match's stage is read from `season.slug`,
 the group letter comes from `data.json`, and the teams/score/status come from the competitors.
 Knockout slot labels like "Round of 32 3 Winner" are turned into the existing `W<num>`/`L<num>`
-bracket refs. `refreshResults()` then resolves the bracket and derives alive/out + champion.
+bracket refs. `refreshResults()` then resolves the bracket and derives alive/out + champion. Bracket rendering (`bracketOrder()`): the Knockout tab stacks ties in true bracket order. ESPN drops a slot's "winner of match N" ref once its feeder finishes, so finished ties are kept in their correct slot by matching each resolved team back to the prior-round match it won (fixed 2026-06-29 — previously a tie vanished from its column the moment it was played).
 Results are a live read, never written back. Last-good results are cached in `localStorage`
 (`wcs_results:<repo>`) for transient outages. The admin token is only for saving the **draw**.
 
