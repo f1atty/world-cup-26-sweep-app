@@ -1,109 +1,79 @@
-# Handover — World Cup '26 Sweep (shareable template)
+# World Cup '26 Sweep (shareable app) - Handover
 
-A genericised, shareable version of the sweep app. Anyone can copy it and run their own
-"last team standing" World Cup sweep, set their own branding, and share a read-only link
-with friends. Self-hosted and free on GitHub Pages.
+**Owner:** Daniel Fainsinger (Strategy & Ops)
+**Last updated:** 2026-06-30
+**Status:** Active
+**Repo:** https://github.com/f1atty/world-cup-26-sweep-app.git
 
-## Relationship to `world-cup-sweep`
+## What it is
 
-This is a **separate codebase**, copied from the original `f1atty/world-cup-sweep` on
-2026-06-09 and genericised. The original keeps its group-specific content ("Everything But",
-"40th Trip"). The two repos will drift, so **a fix made to one (e.g. a Match Centre layout
-change) may need applying to the other**.
+A free, self-hosted "last team standing" sweepstake app for the 2026 FIFA World Cup. A group enters its players, runs an animated draw to allocate the 48 teams, and the app tracks which players' teams are still alive as results come in. Whoever owns the eventual champion takes the pot. It is the genericised, shareable version of the original `world-cup-sweep`: anyone can copy it, set their own branding, and share a read-only link with friends. Vanilla HTML/CSS/JS, no build step, hosted free on GitHub Pages.
 
-## Stack
+## Current status
 
-- Vanilla HTML/CSS/JS, no build step. `index.html` + `style.css` + `app.js`.
-- The **draw** lives in `data.json`, saved to GitHub via a Personal Access Token (admin only).
-- **Match results are fetched live from ESPN in the browser** and derived client-side (no results
-  cache, no GitHub Action). The token is needed only to author/save the draw.
-- Hosted on GitHub Pages.
+- Live and working. Draw, group tables, knockout bracket, standings and Match Centre all functional.
+- Results are fetched live from ESPN client-side. No server, no GitHub Action, no results cache in the repo.
+- Recent fixes (late June 2026): openfootball dropped as a data source (ESPN is now single source); knockout bracket keeps finished ties in their correct slot; group-stage qualifiers derived from group tables.
+- Drift risk with the original `world-cup-sweep`: the two are separate codebases, so a fix in one (e.g. a Match Centre layout change) may need applying to the other.
 
-## Files
+## How to run / access
 
-| File | Purpose |
-|------|---------|
-| `index.html` | App shell and all views (Draw, Match Centre, Groups, Knockout, Standings, Teams, Settings, How to use) |
+This is a static site. No build or local server is needed to test, though it can be served with any static file server (e.g. `python -m http.server` from the project root, then open the printed URL).
+
+To set up a fresh sweep for a new group (full plain-English steps are in the in-app **How to use** tab and in `Set-Up-Your-World-Cup-Sweep.docx`):
+
+1. **Use this template** to create a new repo under the user's own account (repo must be flagged: Settings → General → Template repository).
+2. Enable **GitHub Pages** (Settings → Pages → branch `main`, `/root`). Site lives at `<username>.github.io/<repo>`.
+3. On the deployed site → **Settings**, paste a fine-grained PAT with **Contents: Read & write** on that repo (or a classic token with the `repo` scope). Badge reads "Admin - synced". The token is stored only in the browser (`localStorage`) and is never committed.
+4. **Settings → Group Branding** to name it, then run the draw on **The Draw** tab and lock it - that commits the draw to `data.json`.
+
+The PAT is only needed to author/save the draw. Results are fetched live from ESPN by every viewer; a copier without a token gets a read-only view.
+
+## How it works
+
+| Concern | How |
+|---------|-----|
+| Stack | `index.html` (shell + all views) + `style.css` + `app.js`. No framework, no build step. |
+| Draw state | Lives in `data.json`, saved to GitHub via a PAT (admin only). Shared so every viewer sees the same draw/branding. |
+| Live results | One ESPN scoreboard fetch on load and every 90s. `buildSchedule(espn)` builds the schedule (events numbered 1..104 by ascending `event.id`, stage from `season.slug`, group letter from `data.json`, teams/score/status from competitors). `refreshResults()` resolves the bracket and derives alive/out + champion. Never written back. Last-good results cached in `localStorage` (`wcs_results:<repo>`). |
+| Branding | `DATA.meta.groupName`, `playerWord`, `playerWordPlural`, `subtitle` edited on Settings → Group Branding, stored in `data.json`. `applyBranding()` (from `renderAll`) pushes them into header, title, draw screens and hints. Helpers: `brandGroup()`, `pWord()`, `pWordPlural()`. |
+| Repo auto-detection | `detectRepo()` reads `<owner>.github.io/<repo>` off the URL so a fresh copy points at its own repo with no code edit. Falls back to `DEFAULT_REPO` for local dev / custom domains. |
+| localStorage namespacing | `APP_NS = location.pathname.split('/')[1]`, used in `CFG_KEY` and `VIEW_KEY`, so two sweeps on the same `*.github.io` origin do not clobber each other. |
+| Views | Draw, Match Centre, Groups, Knockout, Standings, Teams (manual admin override), Settings, How to use. |
+
+See `README.md` for the user-facing version of this.
+
+## File / directory map
+
+| Path | What it is |
+|------|-----------|
+| `index.html` | App shell and all views |
 | `style.css` | Stadium-broadcast theme + guide styling |
-| `app.js` | Draw, scoring, groups, bracket, Match Centre, branding, GitHub draw-sync, and the live-results engine (`refreshResults`/`buildSchedule`/`deriveStatus`) |
-| `data.json` | Teams (48), group letters, players + draw, branding. Ships as a clean slate. **No live scores** (fetched at runtime). Group letters are also used to label ESPN events |
-| `scripts/update_results.py` | **No longer run or used** (it was openfootball-based, and openfootball was dropped on 2026-06-28). Kept only as historical reference |
+| `app.js` | Draw, scoring, groups, bracket, Match Centre, branding, GitHub draw-sync, and the live-results engine (`refreshResults`/`buildSchedule`/`deriveStatus`/`bracketOrder`) |
+| `data.json` | Teams (48), group letters, players + draw, branding. Ships as a clean slate. No live scores (fetched at runtime). Group letters also label ESPN events |
+| `scripts/update_results.py` | No longer run or used (openfootball-based, dropped 2026-06-28). Kept only as historical reference |
 | `Set-Up-Your-World-Cup-Sweep.docx` | Plain-English setup guide to send to a non-technical user |
+| `README.md` | Public-facing overview and setup |
 
-## What differs from the original (the genericisation)
+## Key decisions & gotchas
 
-- **Configurable branding.** `DATA.meta.groupName`, `playerWord`, `playerWordPlural`
-  (and `subtitle`) are edited on **Settings → Group Branding** and stored in `data.json`
-  (so every viewer sees the same wording). `applyBranding()` (called from `renderAll`)
-  pushes them into the header, page title, draw screens and hints. Helpers: `brandGroup()`,
-  `pWord()`, `pWordPlural()`.
-- **"House" (fixed)** replaces "40th Trip" as the leftover-teams pot (`const HOUSE = 'House'`).
-- **"player / players"** replaces user-facing "boy / boys". Internal identifiers
-  (`DATA.boys`, CSS classes, function names like `addBoy`/`renderBoysSetup`) were left as-is
-  to avoid breakage — they are invisible to users.
-- **localStorage namespaced by repo path.** `APP_NS = location.pathname.split('/')[1]`,
-  used in `CFG_KEY` and `VIEW_KEY`. Stops two sweeps hosted on the same `*.github.io`
-  origin from sharing config and clobbering each other.
-- **Repo auto-detection.** `detectRepo()` reads `<owner>.github.io/<repo>` off the URL,
-  so a fresh copy points at its own repo with no code edit. Falls back to `DEFAULT_REPO`
-  for local dev / custom domains.
-- **Clean-slate `data.json`** — no players, no draw, all teams alive, scores cleared.
-- **"How to use" tab** (`#view-help`) — in-app setup guide.
+- **Repo is public** (required for free Pages). Anything in `data.json` (player names, draw, results) is publicly viewable. No tokens/credentials are ever committed.
+- **Admin status is purely client-side**: holding a valid token in the browser = admin.
+- **Kick-off times render in Sydney time** (the `SYD` constant in `app.js`).
+- **openfootball dropped 2026-06-28.** Previously took fixture/bracket structure from openfootball and overlaid ESPN scores. openfootball's knockout wiring lagged group results by hours (left R32 slots as placeholders like "1I" or "3A/B/C/D/F"), wrongly marking qualified teams OUT. ESPN resolves knockout teams immediately, so it is now the only source. ESPN orders knockout matches differently, so bracket numbering is now ESPN's own. Removed helpers: `espnScoreIndex`/`overlayEspnScores`/`kickoffUtc`/`ofScores`.
+- **Finished ties kept in their slot (fixed 2026-06-29).** ESPN drops a slot's "winner of match N" ref once its feeder finishes; `bracketOrder()` matches each resolved team back to the prior-round match it won so the tie stays in its correct column. Previously a tie vanished from its column the moment it was played.
+- **Genericisation kept internal identifiers as-is.** User-facing "boy/boys" became "player/players", but internal names (`DATA.boys`, CSS classes, `addBoy`/`renderBoysSetup`) were left unchanged to avoid breakage. The leftover-teams pot is `const HOUSE = 'House'` (replaced "40th Trip").
+- **Hide-the-Settings-tab toggle.** Shared flag `DATA.meta.hideSettingsTab` (in `data.json`) lets the admin hide Settings from the wider group. Logic: `settingsHidden()`, `settingsTabVisible()`, `adminHashOpen()`, toggle button `#toggleSettingsTab`, label/note synced by `updateSettingsTab()`. Admin always regains access via `#settings` (or `#admin`) on the URL, and the tab stays visible on their own token-holding browser.
 
-## Recent additions
+## Open tasks / next steps
 
-- **Hide-the-Settings-tab toggle.** A shared flag `DATA.meta.hideSettingsTab` (stored in
-  `data.json`, so it applies to every viewer) lets the admin hide the Settings tab from the
-  wider group. Logic: `settingsHidden()`, `settingsTabVisible()` (visible if not hidden, or the
-  viewer is an admin with a token, or the URL hash opens it), `adminHashOpen()`, and the toggle
-  button `#toggleSettingsTab` (handler updates the flag and pushes). The admin can always get
-  back in via `#settings` (or `#admin`) on the URL, and the tab stays visible on their own
-  token-holding browser. Button label/note kept in sync by `updateSettingsTab()`.
-- **Groups card text contained.** CSS fix so long team names and standings/fixtures text stay
-  inside the group card instead of overflowing.
+- [ ] Keep this repo and the original `world-cup-sweep` in sync where a shared fix applies to both.
+- [ ] No outstanding feature work flagged. Monitor ESPN feed behaviour through the knockout stages.
 
-## Setting up a new sweep (for a new group)
+## Dependencies, integrations & contacts
 
-Full steps are in the in-app **How to use** tab and in `Set-Up-Your-World-Cup-Sweep.docx`.
-In short:
-
-1. **Use this template** (repo must be flagged as a template: Settings → General → Template
-   repository) to create a new repo under the user's own account.
-2. Enable **Pages** (Settings → Pages → branch `main`, `/root`). Site lives at
-   `<username>.github.io/<repo>`.
-3. On the site → **Settings**, paste a fine-grained PAT with **Contents: Read & write** on that
-   repo (needed to **save the draw**, not for results). Badge reads "Admin · synced".
-4. **Settings → Group Branding** to name it, then run the draw on **The Draw** tab and lock it —
-   that commits the draw to `data.json`.
-
-No Action is needed: results are fetched live from ESPN by every viewer. A copier without
-a token gets a read-only view and can't save a draw.
-
-## Live results (fetched client-side)
-
-There is **no results cache and no GitHub Action**. ESPN's public scoreboard is the **single data
-source**. On load and every 90s the browser does **one fetch** of the ESPN scoreboard (no API key,
-CORS-open) and `buildSchedule(espn)` builds the whole schedule from it: events are numbered 1..104
-by ascending `event.id` (a self-consistent order), each match's stage is read from `season.slug`,
-the group letter comes from `data.json`, and the teams/score/status come from the competitors.
-Knockout slot labels like "Round of 32 3 Winner" are turned into the existing `W<num>`/`L<num>`
-bracket refs. `refreshResults()` then resolves the bracket and derives alive/out + champion. Bracket rendering (`bracketOrder()`): the Knockout tab stacks ties in true bracket order. ESPN drops a slot's "winner of match N" ref once its feeder finishes, so finished ties are kept in their correct slot by matching each resolved team back to the prior-round match it won (fixed 2026-06-29 — previously a tie vanished from its column the moment it was played).
-Results are a live read, never written back. Last-good results are cached in `localStorage`
-(`wcs_results:<repo>`) for transient outages. The admin token is only for saving the **draw**.
-
-**Why openfootball was dropped (2026-06-28).** Previously the engine took fixture/bracket
-**structure** from [openfootball/worldcup.json](https://github.com/openfootball/worldcup.json) and
-overlaid live **scores** from ESPN. openfootball's knockout bracket wiring lagged the group results
-by hours (after the group stage it left Round-of-32 slots as placeholders like "1I" or
-"3A/B/C/D/F"), which made the qualification logic wrongly mark **qualified** teams as **OUT**. ESPN
-resolves the knockout teams immediately, so it is now the only source. The openfootball fetch and
-the score-overlay helpers (`espnScoreIndex`/`overlayEspnScores`/`kickoffUtc`/`ofScores`) were
-removed. Note: ESPN orders knockout matches differently from openfootball, so the bracket numbering
-is now ESPN's own, not openfootball's.
-
-## Notes / gotchas
-
-- This repo is **public** (required for free Pages). Anything in `data.json` (player names,
-  draw, results) is publicly viewable. No tokens/credentials are ever committed.
-- Kick-off times render in Sydney time (the `SYD` constant in `app.js`).
-- Admin status is purely client-side: holding a valid token in the browser = admin.
+- **ESPN public scoreboard** - single live data source for results (no API key, CORS-open).
+- **GitHub Pages** - hosting.
+- **GitHub Contents API** - draw save/sync via a fine-grained PAT (admin only).
+- **Related repo:** the original group-specific `world-cup-sweep` (`f1atty/world-cup-sweep`) this was copied from on 2026-06-09; the two will drift.
+- **Contact:** Daniel Fainsinger.
